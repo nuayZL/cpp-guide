@@ -1,0 +1,135 @@
+//第三题
+#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+struct People {
+    double discount[5] = { 1,1,0.9,0.8,0.7 };                                         //表示相应距离所对应的折扣。
+
+
+
+    char name;
+    int start;
+    int end;
+    int money;               //     
+    bool buy = false;     //判断是否已经买
+    People(char name, int s, int e) :name(name), start(s), end(e) {             ////采用列表初始化的方法。
+        money = (end - start) * 100 * discount[end - start];
+    };
+};
+
+int maxmoney = 0;
+vector<int> res;    //输出目标序列
+vector<bool> ticket(4, true); 
+bool isEnd = false;  //标记是否到了最后一位。
+
+
+bool canbuy(People& p)
+{
+    for (int idx = p.start - 1; idx != p.end - 1; idx++)
+        if (!ticket[idx])
+            return false;
+    return true;
+}
+
+void dfs(vector<People>& ps, vector<int>& buypidx)        //dfs遍历  buypidx表示当前路径所能获得的money
+{
+    if (isEnd)   //先对终止条件进行判断。
+    {
+        int money = 0;
+        for (auto i : buypidx)
+            money += ps[i].money;
+        if (maxmoney < money)
+        {
+            maxmoney = money;
+            res = buypidx;
+        }
+        return;
+    }
+        
+    for (int idx = 0; idx < ps.size(); idx++)
+    {
+        People& p = ps[idx];
+        if (!isEnd && !p.buy && canbuy(p))  //判断没有到end&&该乘客的票还没有买&&该乘客的区间的票还可以买。
+        {
+         p.buy = true;             
+            for (int idx = p.start - 1; idx != p.end - 1; idx++)      ticket[idx] = false;  //讲该票的段设置为false.
+            if (ticket.size() == count(ticket.begin(), ticket.end(), false))    isEnd = true;
+                        buypidx.push_back(idx);
+                              dfs(ps, buypidx);
+                         buypidx.pop_back();
+            for (int idx = p.start - 1; idx != p.end - 1; idx++)       ticket[idx] = true;
+            if (ticket.size() != count(ticket.begin(), ticket.end(), false))    isEnd = false;   //判断当前是否是已经将位置都沾满了
+          p.buy = false;
+        }
+    }
+}
+
+int main()
+{
+    vector<People> ps;                    //存储信息
+    int s, e;
+    char name;
+    char ch;
+    while (cin >> name >> ch >> s >> ch >> e)
+        ps.push_back({ name, s, e });
+
+    vector<int> buypidx;
+    dfs(ps, buypidx);
+    for (int i : res)
+        cout << ps[i].name << " ";
+    cout << endl;
+
+    return 0;
+}
+
+//第二题
+#include<bits/stdc++.h>
+#include<vector>
+#include<algorithm>
+using namespace std;
+void dfs(vector<int>& vec,vector<int>& used, vector<int>& res ,int score){
+        int pos=0;
+        while(pos<used.size()&&used[pos]==true)  pos++;
+        if(pos==vec.size())  return;              //如果已经遍历到了数组的最后直接结束
+        used[pos]==true;
+        int num=vec[pos];
+        for(int i=0;i<vec.size();++i){
+              if((num+vec[i])%score==0){
+                  res.push_back(num);
+                  res.push_back(vec[i]);
+                  used[i]=true;
+                  break;
+              }
+        }
+        dfs(vec,used,res,score);
+}
+
+int main(){
+      int averagescore,n;
+      cin>>averageacore>>n;                //平均值和人数
+      vector<int > input(2*n);                //
+      vector<int>  used(2*n,false);
+      for(int i=0;i<2*n;++i){
+            cin>>input[i];
+      }
+      sort(input.begin(),input.end());                //从大到小排序
+      reverse(input.begin(),input.end());
+      vector<int> res;                                      //存放答案
+      dfs(input,used,res,averagescore);         //回溯的方法
+      if(res.size()!=input.size()){   //如果res数组不等于input数组的大小，表明不满足所有的都能够整除。
+         cout<<0;
+         return 0;
+      }for(int i=0;i<res.size();++i){
+         cout<<res[i]<<" "; 
+      }
+    cout<<endl;
+    return 0；
+}
+
+//总结：当时没太读懂题意，两层for循环应该叫就可以满足要求。
+应该是所有积分对都两两满足能够整除平均数才是符合要求的。否则就输出0；当时没读懂题。
+可以采取减枝的操作。
+在每轮如果没有积分对，直接break；可以防止超时；
